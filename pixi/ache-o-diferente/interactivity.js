@@ -1,14 +1,24 @@
 const app = new PIXI.Application({
-    width: 800, height: 800, 
+    // width: 800, height: 800,
     backgroundColor: 0xFFFFFF, 
     resolution: window.devicePixelRatio || 1,
 });
-document.body.appendChild(app.view);
+app.renderer.view.style.position = "absolute";
+app.renderer.view.style.display = "block";
+app.renderer.autoResize = true;
+app.renderer.resize(window.innerWidth, window.innerHeight);
+
+// let scale = scaleToWindow(app.renderer.view);
+document.body.appendChild(app.renderer.view);
 
 // create a background...
-const background = PIXI.Sprite.from('assets/bk.jpg');
-background.width = app.screen.width;
-background.height = app.screen.height;
+const background = PIXI.Sprite.from('assets/titulo.jpg');
+//background.width = app.screen.width;
+//background.height = app.screen.height;
+//background.tint = Math.random() * 0xFFFFFF;
+background.anchor.set(0.0);
+background.x = 180;
+background.y =10;
 
 // add background to stage...
 app.stage.addChild(background);
@@ -42,7 +52,7 @@ const textureButtons = [
 
 const buttons = [];
 
-const x = 150;
+const x = 180;
 const y = 180;
 const xOffSet = 160;
 const yOffSet = 180;
@@ -185,3 +195,51 @@ function onButtonOut() {
     // }
     // this.texture = textureButton;
 }
+
+// Consider that WIDTH and HEIGHT are defined as the width and height of your unresized game in pixels.
+const WIDTH=800;
+const HEIGHT=600;
+
+/**
+ * @param {PIXI.Application} app
+ * @returns {Function}
+ */
+const resize = (app) =>  {
+    return function () {
+      const vpw = window.innerWidth;  // Width of the viewport
+      const vph = window.innerHeight; // Height of the viewport
+      let nvw; // New game width
+      let nvh; // New game height
+  
+      // The aspect ratio is the ratio of the screen's sizes in different dimensions.
+      // The height-to-width aspect ratio of the game is HEIGHT / WIDTH.
+      
+      if (vph / vpw < HEIGHT / WIDTH) {
+        // If height-to-width ratio of the viewport is less than the height-to-width ratio
+        // of the game, then the height will be equal to the height of the viewport, and
+        // the width will be scaled.
+        nvh = vph;
+        nvw = (nvh * WIDTH) / HEIGHT;
+      } else {
+        // In the else case, the opposite is happening.
+        nvw = vpw;
+        nvh = (nvw * HEIGHT) / WIDTH;
+      }
+      
+      // Set the game screen size to the new values.
+      // This command only makes the screen bigger --- it does not scale the contents of the game.
+      // There will be a lot of extra room --- or missing room --- if we don't scale the stage.
+      app.renderer.resize(nvw, nvh);
+      
+      // This command scales the stage to fit the new size of the game.
+      app.stage.scale.set(nvw / WIDTH, nvh / HEIGHT);
+
+      console.log("RESIZING...");
+    };
+  }
+  
+  // Perform initial resizing
+  resize(app)();
+  // Add event listener so that our resize function runs every time the
+  // browser window is resized.
+  window.addEventListener("resize", resize(app));
